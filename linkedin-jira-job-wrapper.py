@@ -7,7 +7,7 @@ import os
 
 def get_active_openings():
     
-    jira = JIRA(server="https://exceptionly.atlassian.net", basic_auth=("YOUR JIRA SUPERADMIN USER EMAIL HERE", "YOUR JIRA SUPERADMIN ACCESS TOKEN HERE"))
+    jira = JIRA(server="https://companyname.atlassian.net", basic_auth=("YOUR JIRA SUPERADMIN USER EMAIL HERE", "YOUR JIRA SUPERADMIN ACCESS TOKEN HERE"))
 
     issues = jira.search_issues('project=TEN AND issuetype="Opening" AND status="In Progress"', maxResults=100) 
 
