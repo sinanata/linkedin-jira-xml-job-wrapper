@@ -13,13 +13,13 @@ Once you automatically upload this to your host, Linkedin crawlers come and cons
 
 ## Python file external dependencies:
 pip install jira  --> <a href="https://jira.readthedocs.io/">Python Jira</a><br/>
-pip install lxml  --> <a href="https://lxml.de/installation.html">lxml</a><br/>
+pip install lxml  --> <a href="https://lxml.de/installation.html">Python lxml</a><br/>
 
 ### Python file built-in module dependencies:
-csv               --> <a href="https://docs.python.org/3/library/csv.html">csv</a><br/>
-collections       --> <a href="https://docs.python.org/3/library/collections.html">collections</a><br/>
-ftplib            --> <a href="https://docs.python.org/3/library/ftplib.html">ftplib</a><br/>
-os                --> <a href="https://docs.python.org/3/library/os.html">os</a><br/>
+<a href="https://docs.python.org/3/library/csv.html">csv</a><br/>
+<a href="https://docs.python.org/3/library/collections.html">collections</a><br/>
+<a href="https://docs.python.org/3/library/ftplib.html">ftplib</a><br/>
+<a href="https://docs.python.org/3/library/os.html">os</a><br/>
 
 ## Python file end-result live on Linkedin:
 <img width="798" alt="sample-job-post-by-exceptionly" src="https://user-images.githubusercontent.com/2798897/167887136-53b4095f-c038-4361-929f-62e72bdc5175.png">
