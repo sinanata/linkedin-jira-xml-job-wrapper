@@ -4,11 +4,11 @@ The way we wrap jobs at <a href="https://exceptionly.com">Exceptionly</a>. Excep
 This approach saved a lot of time for our talent acquisition team. Hope it does the same if you go ahead and make a crazy decision of running operations HR operations over Jira.
 
 ## Python file checks:
-As you may know, Job Slots over Linkedin are city sensitive, so your XML output should include all job/city variations separately.
+As you may know, Job Slots over Linkedin are city sensitive, so your XML output should include all job/city variations separately.<br/>
 <a href="https://github.com/sinanata/linkedin-jira-xml-job-wrapper/blob/main/us-states.csv"><strong>us-states.csv</strong></a> file is necessary for inserting proper city/state information if you are publishing jobs for the US.
 
 ## Python file generates:
-Once you automatically upload this to your host, Linkedin crawlers come and consume this file for generating your jobs lots.
+Once you automatically upload this to your host, Linkedin crawlers come and consume this file for generating your jobs lots.<br/>
 <a href="https://github.com/sinanata/linkedin-jira-xml-job-wrapper/blob/main/exceptionlyjds.xml"><strong>exceptionlyjds.xml</strong></a>
 
 ## Python file external dependencies:
