@@ -12,8 +12,8 @@ Once you automatically upload this to your host, Linkedin crawlers come and cons
 <a href="https://github.com/sinanata/linkedin-jira-xml-job-wrapper/blob/main/exceptionlyjds.xml"><strong>exceptionlyjds.xml</strong></a>
 
 ## Python file external dependencies:
-pip install jira  --> <a href="https://jira.readthedocs.io/">Python Jira</a>
-pip install lxml  --> <a href="https://lxml.de/installation.html">lxml</a>
+pip install jira  --> <a href="https://jira.readthedocs.io/">Python Jira</a><br/>
+pip install lxml  --> <a href="https://lxml.de/installation.html">lxml</a><br/>
 
 ### Python file built-in module dependencies:
 csv               --> <a href="https://docs.python.org/3/library/csv.html">csv</a><br/>
