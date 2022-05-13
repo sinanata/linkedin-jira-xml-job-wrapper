@@ -5,194 +5,181 @@ import csv
 import ftplib
 import os
 
+
 def get_active_openings():
-    
-    jira = JIRA(server="https://companyname.atlassian.net", basic_auth=("YOUR JIRA SUPERADMIN USER EMAIL HERE", "YOUR JIRA SUPERADMIN ACCESS TOKEN HERE"))
 
-    issues = jira.search_issues('project=TEN AND issuetype="Opening" AND status="In Progress"', maxResults=100) 
+    field_map = {
+        "customfield_10094": "country",
+        "customfield_10102": "state",
+        "customfield_10095": "city",
+        "customfield_10090": "industry_code",
+        "customfield_10097": "job_function"
+    }
 
-    issue_dict = {'openings':{}}
-    
+    jira = JIRA(server="https://companyname.atlassian.net", basic_auth=(
+        "YOUR JIRA SUPERADMIN USER EMAIL HERE", "YOUR JIRA SUPERADMIN ACCESS TOKEN HERE"))
+
+    issues = jira.search_issues(
+        'project=TEN AND issuetype="Opening" AND status="In Progress"', maxResults=100)
+
+    issue_dict = {'openings': {}}
+
     for issue in issues:
         issue_dict['openings'][issue.key] = {}
         issue_dict['openings'][issue.key]['fields'] = {}
         issue_dict['openings'][issue.key]['fields']['field'] = {}
-        
+
         for key, value in issue.raw['fields'].items():
 
             issue_dict['openings'][issue.key]['fields']['field'][key] = value
-    
-    meta_dict={}
 
-    source_dict = {'source':{}}
+    meta_dict = {}
+
+    source_dict = {'source': {}}
     source_dict['source'] = {}
 
     for key, value in issue_dict['openings'].items():
         issue_key = key
         meta_dict[issue_key] = {}
         meta_dict[issue_key]['salary'] = {}
-        meta_dict[issue_key]['salary']['lowEnd'] = {'amount':'','currencyCode':''}
-        meta_dict[issue_key]['salary']['highEnd'] = {'amount':'','currencyCode':''}
+        meta_dict[issue_key]['salary']['lowEnd'] = {
+            'amount': '', 'currencyCode': ''}
+        meta_dict[issue_key]['salary']['highEnd'] = {
+            'amount': '', 'currencyCode': ''}
         meta_dict[issue_key]['salary']['period'] = {}
         meta_dict[issue_key]['salary']['type'] = {}
 
         for key, value in value['fields']['field'].items():
-            if key=='customfield_10088' and value != None:
-                meta_dict[issue_key].update({'company':'Exceptionly'})
-                meta_dict[issue_key].update({'title':str(value)})
-                
-            elif key=='summary' and value != None:
-                meta_dict[issue_key].update({'pipeline_name':str(value)})
-            elif key=='customfield_10089' and value != None:
-                meta_dict[issue_key].update({'description':str(value)})
-                
-            elif key=='customfield_10107' and value != None:
-                
-                skills_list=[]
+            if value == None:
+                continue
+            if key == 'customfield_10088':
+                meta_dict[issue_key].update({'company': 'Exceptionly'})
+                meta_dict[issue_key].update({'title': str(value)})
+
+            elif key == 'summary':
+                meta_dict[issue_key].update({'pipeline_name': str(value)})
+            elif key == 'customfield_10089':
+                meta_dict[issue_key].update({'description': str(value)})
+
+            elif key == 'customfield_10107':
+
+                skills_list = []
                 for item in value:
-                    skills_list.append(item.replace('_',' '))
+                    skills_list.append(item.replace('_', ' '))
 
                 skills_text = ', '.join(skills_list)
-                meta_dict[issue_key].update({'skills':str(skills_text)})
+                meta_dict[issue_key].update({'skills': str(skills_text)})
 
-            elif key=='customfield_10105' and value != None:
-                meta_dict[issue_key].update({'benefits':str(value)})
-                
-            elif key=='customfield_10091' and value != None:
-                meta_dict[issue_key].update({'applyUrl':str(value)})
-                
-            elif key=='customfield_10092' and value != None:
-                meta_dict[issue_key].update({'partnerJobId':str(value)})
-                
-            elif key=='customfield_10094' and value != None:
-                
-                c_id = 0
-                meta_dict[issue_key]['country'] = {}
-                for item in value:
-                    
-                    meta_dict[issue_key]['country'].update({c_id:str(item['value'])})
-                    c_id += 1
-                c_id = 0
-                
-            elif key=='customfield_10102' and value != None:
-                c_id = 0
-                meta_dict[issue_key]['state'] = {}
-                for item in value:
-                    
-                    meta_dict[issue_key]['state'].update({c_id:str(item['value'])})
-                    c_id += 1
-                c_id = 0
-                
-            elif key=='customfield_10095' and value != None:
-                c_id = 0
-                meta_dict[issue_key]['city'] = {}
-                for item in value:
-                    
-                    meta_dict[issue_key]['city'].update({c_id:str(item['value'])})
-                    c_id += 1
-                c_id = 0
-                
-            elif key=='customfield_10090' and value != None:
-                c_id = 0
-                meta_dict[issue_key]['industry_code'] = {}
-                for item in value:
-                    
-                    meta_dict[issue_key]['industry_code'].update({c_id:str(item['value'])})
-                    c_id += 1
-                c_id = 0
-                
-            elif key=='customfield_10097' and value != None:
-                c_id = 0
-                meta_dict[issue_key]['job_function'] = {}
-                for item in value:
-                    
-                    meta_dict[issue_key]['job_function'].update({c_id:str(item['value'])})
-                    c_id += 1
-                c_id = 0
-                
-            elif key=='customfield_10101' and value != None:
-                meta_dict[issue_key].update({'experienceLevel':str(value['value'])})
-                
-            elif key=='customfield_10104' and value != None:
-                meta_dict[issue_key].update({'isRemote':str(value['value'])})
-                
-            elif key=='customfield_10098' and value != None:
-                
-                meta_dict[issue_key]['salary']['highEnd']['amount'] = str(int(value))
-                
+            elif key == 'customfield_10105':
+                meta_dict[issue_key].update({'benefits': str(value)})
 
-            elif key=='customfield_10099' and value != None:
-                
-                meta_dict[issue_key]['salary']['lowEnd']['amount'] = str(int(value))
-                
-            elif key=='customfield_10100' and value != None:
+            elif key == 'customfield_10091':
+                meta_dict[issue_key].update({'applyUrl': str(value)})
 
-                meta_dict[issue_key]['salary']['lowEnd']['currencyCode'] = str(value['value'].split('-')[0])
-                meta_dict[issue_key]['salary']['highEnd']['currencyCode'] = str(value['value'].split('-')[0])
-                
-            elif key=='customfield_10106' and value != None:
+            elif key == 'customfield_10092':
+                meta_dict[issue_key].update({'partnerJobId': str(value)})
+
+            elif key == 'customfield_10094' or key == 'customfield_10102' or key == 'customfield_10095' or key == 'customfield_10090' or key == 'customfield_10097':
+
+                c_id = 0
+                meta_dict[issue_key][field_map[key]] = {}
+                for item in value:
+
+                    meta_dict[issue_key][field_map[key]].update(
+                        {c_id: str(item['value'])})
+                    c_id += 1
+                c_id = 0
+
+            elif key == 'customfield_10101':
+                meta_dict[issue_key].update(
+                    {'experienceLevel': str(value['value'])})
+
+            elif key == 'customfield_10104':
+                meta_dict[issue_key].update({'isRemote': str(value['value'])})
+
+            elif key == 'customfield_10098':
+
+                meta_dict[issue_key]['salary']['highEnd']['amount'] = str(
+                    int(value))
+
+            elif key == 'customfield_10099':
+
+                meta_dict[issue_key]['salary']['lowEnd']['amount'] = str(
+                    int(value))
+
+            elif key == 'customfield_10100':
+
+                meta_dict[issue_key]['salary']['lowEnd']['currencyCode'] = str(
+                    value['value'].split('-')[0])
+                meta_dict[issue_key]['salary']['highEnd']['currencyCode'] = str(
+                    value['value'].split('-')[0])
+
+            elif key == 'customfield_10106':
                 meta_dict[issue_key]['salary']['period'] = str(value['value'])
                 meta_dict[issue_key]['salary']['type'] = str('BASE_SALARY')
-                
-            elif key=='customfield_10096' and value != None:
-                meta_dict[issue_key].update({'jobType':str(value['value'])})
-                
-            elif key=='customfield_10103' and value != None:
-                meta_dict[issue_key].update({'workplaceTypes':str(value['value'])})
-                
+
+            elif key == 'customfield_10096':
+                meta_dict[issue_key].update({'jobType': str(value['value'])})
+
+            elif key == 'customfield_10103':
+                meta_dict[issue_key].update(
+                    {'workplaceTypes': str(value['value'])})
+
             else:
                 pass
-        
-    validation =[] 
-    
+
+    validation = []
+
     for key, value in meta_dict.items():
 
         if 'city' not in value:
             validation.append(key)
-            
+
     for key in validation:
         meta_dict.pop(key)
 
     validation = []
-    
+
     job_slots_expected = 0
     job_slot_counter = 0
-    
+
     for item in meta_dict:
         job_slots_expected += len(meta_dict[item]['city'])
-        
+
         for key, value in meta_dict[item]['city'].items():
-            
-            source_dict['source'][str(item)+'-'+str(key)] = {}
-            source_dict['source'][str(item)+'-'+str(key)]['issue_key'] = item
-            source_dict['source'][str(item)+'-'+str(key)]['pipeline_name'] = meta_dict[item]['pipeline_name']
-            source_dict['source'][str(item)+'-'+str(key)]['company'] = meta_dict[item]['company']
-            source_dict['source'][str(item)+'-'+str(key)]['title'] = meta_dict[item]['title']
-            source_dict['source'][str(item)+'-'+str(key)]['description'] = meta_dict[item]['description']
-            source_dict['source'][str(item)+'-'+str(key)]['benefits'] = meta_dict[item]['benefits']
-            source_dict['source'][str(item)+'-'+str(key)]['applyUrl'] = meta_dict[item]['applyUrl']
-            source_dict['source'][str(item)+'-'+str(key)]['partnerJobId'] = meta_dict[item]['partnerJobId']+'_'+item+'_'+str(key)
-            source_dict['source'][str(item)+'-'+str(key)]['salaries'] = {}
-            source_dict['source'][str(item)+'-'+str(key)]['salaries'] = {'salary':{}}
-            source_dict['source'][str(item)+'-'+str(key)]['salaries']['salary'] = {'lowEnd':{},'highEnd':{}, 'period':'', 'type':''}
-            source_dict['source'][str(item)+'-'+str(key)]['salaries']['salary']['lowEnd']['amount'] = meta_dict[item]['salary']['lowEnd']['amount']
-            source_dict['source'][str(item)+'-'+str(key)]['salaries']['salary']['highEnd']['amount'] = meta_dict[item]['salary']['highEnd']['amount']
-            source_dict['source'][str(item)+'-'+str(key)]['salaries']['salary']['lowEnd']['currencyCode'] = meta_dict[item]['salary']['lowEnd']['currencyCode']
-            source_dict['source'][str(item)+'-'+str(key)]['salaries']['salary']['highEnd']['currencyCode'] = meta_dict[item]['salary']['highEnd']['currencyCode']
-            source_dict['source'][str(item)+'-'+str(key)]['salaries']['salary']['period'] = meta_dict[item]['salary']['period']
-            source_dict['source'][str(item)+'-'+str(key)]['salaries']['salary']['type'] = meta_dict[item]['salary']['type']
-            source_dict['source'][str(item)+'-'+str(key)]['experienceLevel'] = meta_dict[item]['experienceLevel']
-            source_dict['source'][str(item)+'-'+str(key)]['skills'] = meta_dict[item]['skills']
-            source_dict['source'][str(item)+'-'+str(key)]['isRemote'] = meta_dict[item]['isRemote']
-            source_dict['source'][str(item)+'-'+str(key)]['jobType'] = meta_dict[item]['jobType']
-            source_dict['source'][str(item)+'-'+str(key)]['workplaceTypes'] = meta_dict[item]['workplaceTypes']
-            source_dict['source'][str(item)+'-'+str(key)]['jobFunctions'] = meta_dict[item]['job_function']
-            source_dict['source'][str(item)+'-'+str(key)]['industryCodes'] = meta_dict[item]['industry_code']
-            source_dict['source'][str(item)+'-'+str(key)]['city'] = value
-            
+            param = str(item)+'-'+str(key)
+            source_dict['source'][param] = {}
+            source_dict['source'][param]['issue_key'] = item
+            source_dict['source'][param]['pipeline_name'] = meta_dict[item]['pipeline_name']
+            source_dict['source'][param]['company'] = meta_dict[item]['company']
+            source_dict['source'][param]['title'] = meta_dict[item]['title']
+            source_dict['source'][param]['description'] = meta_dict[item]['description']
+            source_dict['source'][param]['benefits'] = meta_dict[item]['benefits']
+            source_dict['source'][param]['applyUrl'] = meta_dict[item]['applyUrl']
+            source_dict['source'][param]['partnerJobId'] = meta_dict[item]['partnerJobId'] + \
+                '_'+item+'_'+str(key)
+            source_dict['source'][param]['salaries'] = {}
+            source_dict['source'][param]['salaries'] = {'salary': {}}
+            source_dict['source'][param]['salaries']['salary'] = {
+                'lowEnd': {}, 'highEnd': {}, 'period': '', 'type': ''}
+            source_dict['source'][param]['salaries']['salary']['lowEnd']['amount'] = meta_dict[item]['salary']['lowEnd']['amount']
+            source_dict['source'][param]['salaries']['salary']['highEnd']['amount'] = meta_dict[item]['salary']['highEnd']['amount']
+            source_dict['source'][param]['salaries']['salary']['lowEnd']['currencyCode'] = meta_dict[item]['salary']['lowEnd']['currencyCode']
+            source_dict['source'][param]['salaries']['salary']['highEnd']['currencyCode'] = meta_dict[item]['salary']['highEnd']['currencyCode']
+            source_dict['source'][param]['salaries']['salary']['period'] = meta_dict[item]['salary']['period']
+            source_dict['source'][param]['salaries']['salary']['type'] = meta_dict[item]['salary']['type']
+            source_dict['source'][param]['experienceLevel'] = meta_dict[item]['experienceLevel']
+            source_dict['source'][param]['skills'] = meta_dict[item]['skills']
+            source_dict['source'][param]['isRemote'] = meta_dict[item]['isRemote']
+            source_dict['source'][param]['jobType'] = meta_dict[item]['jobType']
+            source_dict['source'][param]['workplaceTypes'] = meta_dict[item]['workplaceTypes']
+            source_dict['source'][param]['jobFunctions'] = meta_dict[item]['job_function']
+            source_dict['source'][param]['industryCodes'] = meta_dict[item]['industry_code']
+            source_dict['source'][param]['city'] = value
+
     for item in source_dict['source'].items():
         job_slot_counter += 1
-        
+
         meta_key = item[0].split('-')[0]+'-'+item[0].split('-')[1]
 
         for country in meta_dict[meta_key]['country'].items():
@@ -201,47 +188,51 @@ def get_active_openings():
             meta_country_code = country[1].split('-')[0]
             city = item[1]['city'].split('-')[1]
             country = country[1].split('-')[1]
-            
+
             if city_country_code == meta_country_code and meta_country_code != 'US':
                 item[1]['country'] = str(country)
                 item[1]['location'] = '{}, {}'.format(city, country)
-                
+
             elif city_country_code == meta_country_code and meta_country_code == 'US':
                 for state in meta_dict[meta_key]['state'].items():
 
                     if US_city_state_checker(city, state[1]) and state[1]:
                         item[1]['country'] = str(country)
                         item[1]['state'] = str(state[1])
-                        item[1]['location'] = '{}, {}'.format(city, get_state_shortcode(state[1]))
-                        
+                        item[1]['location'] = '{}, {}'.format(
+                            city, get_state_shortcode(state[1]))
+
                     else:
                         pass
             else:
                 pass
-    
+
         item[1]['city'] = item[1]['city'].split('-')[1]
-        item[1]['applyUrl'] = str(item[1]['applyUrl']+'?source='+item[1]['partnerJobId']+'_'+item[1]['country']+'_'+item[1]['city'])
-  
+        item[1]['applyUrl'] = str(item[1]['applyUrl']+'?source='+item[1]
+                                  ['partnerJobId']+'_'+item[1]['country']+'_'+item[1]['city'])
+
     if job_slot_counter != job_slots_expected:
-        raise Exception('MISMATCH IN EXPECTATIONS: job_slot_counter: '+str(job_slot_counter)+' > job_slots_expected: '+str(job_slots_expected))
-            
-    print('\n\nTotal '+ str(job_slots_expected) + ' job slots expected\n\n')
+        raise Exception('MISMATCH IN EXPECTATIONS: job_slot_counter: ' +
+                        str(job_slot_counter)+' > job_slots_expected: '+str(job_slots_expected))
+
+    print('\n\nTotal ' + str(job_slots_expected) + ' job slots expected\n\n')
 
     company_names = []
 
     root = ET.Element('source')
-    
+
     for item in source_dict['source']:
         job = ET.SubElement(root, 'job')
         job.insert(0, ET.Comment('job_id: '+str(item)))
         for key, value in source_dict['source'][item].items():
             if key == 'job':
                 ET.SubElement(job, key).text = ET.CDATA(value)
-            elif key=='title':
+            elif key == 'title':
                 ET.SubElement(job, key).text = ET.CDATA(value)
-            elif key=='applyUrl':
-                ET.SubElement(job, key).text = ET.CDATA(value.replace(' ','_'))
-            elif key=='partnerJobId':
+            elif key == 'applyUrl':
+                ET.SubElement(job, key).text = ET.CDATA(
+                    value.replace(' ', '_'))
+            elif key == 'partnerJobId':
                 ET.SubElement(job, key).text = ET.CDATA(value)
             elif key == 'jobType':
                 ET.SubElement(job, key).text = ET.CDATA(value)
@@ -255,13 +246,19 @@ def get_active_openings():
                 salaries = ET.SubElement(job, key)
                 salary = ET.SubElement(salaries, 'salary')
                 highEnd = ET.SubElement(salary, 'highEnd')
-                ET.SubElement(highEnd, 'amount').text = ET.CDATA(source_dict['source'][item]['salaries']['salary']['highEnd']['amount'])
-                ET.SubElement(highEnd, 'currencyCode').text = source_dict['source'][item]['salaries']['salary']['highEnd']['currencyCode']
+                ET.SubElement(highEnd, 'amount').text = ET.CDATA(
+                    source_dict['source'][item]['salaries']['salary']['highEnd']['amount'])
+                ET.SubElement(
+                    highEnd, 'currencyCode').text = source_dict['source'][item]['salaries']['salary']['highEnd']['currencyCode']
                 lowEnd = ET.SubElement(salary, 'lowEnd')
-                ET.SubElement(lowEnd, 'amount').text = ET.CDATA(source_dict['source'][item]['salaries']['salary']['lowEnd']['amount'])
-                ET.SubElement(lowEnd, 'currencyCode').text = source_dict['source'][item]['salaries']['salary']['lowEnd']['currencyCode']
-                ET.SubElement(salary, 'period').text = ET.CDATA(source_dict['source'][item]['salaries']['salary']['period'])
-                ET.SubElement(salary, 'type').text = ET.CDATA(source_dict['source'][item]['salaries']['salary']['type'])
+                ET.SubElement(lowEnd, 'amount').text = ET.CDATA(
+                    source_dict['source'][item]['salaries']['salary']['lowEnd']['amount'])
+                ET.SubElement(
+                    lowEnd, 'currencyCode').text = source_dict['source'][item]['salaries']['salary']['lowEnd']['currencyCode']
+                ET.SubElement(salary, 'period').text = ET.CDATA(
+                    source_dict['source'][item]['salaries']['salary']['period'])
+                ET.SubElement(salary, 'type').text = ET.CDATA(
+                    source_dict['source'][item]['salaries']['salary']['type'])
             elif key == 'company':
                 ET.SubElement(job, key).text = ET.CDATA(value)
             elif key == 'city':
@@ -272,34 +269,38 @@ def get_active_openings():
                 ET.SubElement(job, key).text = ET.CDATA(value)
             elif key == 'location':
                 ET.SubElement(job, key).text = ET.CDATA(value)
-            elif key =='isRemote':
+            elif key == 'isRemote':
                 ET.SubElement(job, key).text = ET.CDATA(value)
             elif key == 'jobFunctions':
                 jobFunctions = ET.SubElement(job, key)
                 for func in value.items():
-                    ET.SubElement(jobFunctions, 'jobFunction').text = ET.CDATA(func[1].split('-')[0])
+                    ET.SubElement(jobFunctions, 'jobFunction').text = ET.CDATA(
+                        func[1].split('-')[0])
             elif key == 'industryCodes':
                 industryCodes = ET.SubElement(job, key)
                 for func in value.items():
-                    ET.SubElement(industryCodes, 'industryCode').text = ET.CDATA(func[1].split('-')[0])
+                    ET.SubElement(industryCodes, 'industryCode').text = ET.CDATA(
+                        func[1].split('-')[0])
             elif key == 'description':
                 ET.SubElement(job, key).text = ET.CDATA(value+'\n#LI-SA1')
             elif key == 'benefits':
                 ET.SubElement(job, key).text = ET.CDATA(value)
             elif key == 'pipeline_name':
                 company_names.append(value.split('_')[0])
-                
+
     file_path = os.path.abspath(os.path.dirname(__file__))
     file_name = os.path.join(file_path, 'exceptionlyjds.xml')
 
-    ET.ElementTree(root).write(file_name, encoding='utf-8', xml_declaration=True)
+    ET.ElementTree(root).write(
+        file_name, encoding='utf-8', xml_declaration=True)
     print('XML Creation: Done\n')
 
-
     if len(source_dict['source']) > 60:
-        print(str(len(source_dict['source']))+'/60 job slots generated\nWARNING: More than 60 job slots were used. Please check the xml file')
+        print(str(len(source_dict['source'])) +
+              '/60 job slots generated\nWARNING: More than 60 job slots were used. Please check the xml file')
     else:
-        print(str(len(source_dict['source']))+'/60 job slots generated\nWARNING: Where are the other '+str(60-len(source_dict['source']))+' job slots?')
+        print(str(len(source_dict['source']))+'/60 job slots generated\nWARNING: Where are the other '+str(
+            60-len(source_dict['source']))+' job slots?')
 
     company_counts = Counter(company_names)
     company_costs = {}
@@ -308,14 +309,17 @@ def get_active_openings():
 
     company_list = []
     for company in company_costs:
-        company_list.append({'Company Name': company, 'Total Count': company_counts[company], 'Total Cost': company_costs[company]})
-        print('Company Name: '+company+'\nTotal Count: '+str(company_counts[company])+'\nTotal Cost: $'+str(company_costs[company])+'\n\n')
+        company_list.append(
+            {'Company Name': company, 'Total Count': company_counts[company], 'Total Cost': company_costs[company]})
+        print('Company Name: '+company+'\nTotal Count: ' +
+              str(company_counts[company])+'\nTotal Cost: $'+str(company_costs[company])+'\n\n')
+
 
 def US_city_state_checker(city=None, state=None):
 
     file_path = os.path.abspath(os.path.dirname(__file__))
     file_path = os.path.join(file_path, 'us-states.csv')
-    
+
     with open(file_path, 'r') as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
@@ -323,17 +327,19 @@ def US_city_state_checker(city=None, state=None):
                 return True
     return False
 
+
 def get_state_shortcode(state_long_name=None):
 
     file_path = os.path.abspath(os.path.dirname(__file__))
     file_path = os.path.join(file_path, 'us-states.csv')
-    
+
     with open(file_path, 'r') as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
             if state_long_name in row[1]:
                 return row[0]
     return False
+
 
 def file_upload(fname=None):
 
@@ -357,13 +363,8 @@ def file_upload(fname=None):
     ftp.storbinary('STOR '+file_name, open(file_path, 'rb'))
     print('Successfully uploaded '+file_name+'\n')
 
+
 if __name__ == "__main__":
-    
+
     get_active_openings()
     file_upload('exceptionlyjds.xml')
-    
-
-    
-
-
-
